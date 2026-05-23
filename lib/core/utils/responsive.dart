@@ -144,9 +144,10 @@ class ConstrainedContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double effectiveMaxWidth = maxWidth ?? R.value(context, regular: double.infinity, tablet: 720, largeTablet: 900);
     return Center(
-      child: SizedBox(
-        width: maxWidth ?? R.value(context, regular: double.infinity, tablet: 720, largeTablet: 900),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: effectiveMaxWidth),
         child: child,
       ),
     );

@@ -114,8 +114,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
     return Scaffold(
       backgroundColor: DesignSystem.surface,
-      body: SingleChildScrollView(
-        child: Column(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
           children: [
             // ── Premium Dark Header ──────────────────────────────────────────
             Container(
