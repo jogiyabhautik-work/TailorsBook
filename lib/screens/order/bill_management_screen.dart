@@ -223,7 +223,7 @@ class _BillManagementScreenState extends State<BillManagementScreen> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    Text('${order.items.length} items â€¢ ${DateFormat('MMM dd').format(order.createdAt)}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    Text('${order.items.length} items \u2022 ${DateFormat('MMM dd').format(order.createdAt)}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                   ],
                 ),
               ),

@@ -279,7 +279,7 @@ class _MeasurementTabState extends State<MeasurementTab> {
 
     return Scaffold(
       backgroundColor: DesignSystem.surface,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: selectedCustomer != null
           ? Column(
               children: [
@@ -287,7 +287,9 @@ class _MeasurementTabState extends State<MeasurementTab> {
                 _buildHeader(selectedCustomer, provider),
                 Expanded(
                   child: MeasurementEntryView(
+                    key: ValueKey('tab_entry_${selectedCustomer.id}'),
                     customer: selectedCustomer,
+                    isTabScreen: true,
                     onSave: () => provider.setSelectedCustomer(null),
                     onDirtyChanged: (dirty) => _formDirty = dirty,
                   ),

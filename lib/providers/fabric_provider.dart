@@ -93,8 +93,13 @@ class FabricProvider extends ChangeNotifier {
     try {
       final user = _supabase.auth.currentUser;
       final finalFabric = fabric.copyWith(shopId: user?.id);
-      await _supabase.from('fabrics').insert(finalFabric.toJson());
-      _shopFabrics.insert(0, finalFabric);
+      final response = await _supabase
+          .from('fabrics')
+          .insert(finalFabric.toJson())
+          .select()
+          .single();
+      final insertedFabric = ShopFabricModel.fromJson(response);
+      _shopFabrics.insert(0, insertedFabric);
       notifyListeners();
       return true;
     } catch (e) {

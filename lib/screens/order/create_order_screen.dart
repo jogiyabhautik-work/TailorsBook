@@ -832,7 +832,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                                 Text(
                                   _trialDate != null
                                       ? DateFormat('dd MMM, yyyy').format(_trialDate!)
-                                      : 'Optional â€” Tap to select',
+                                      : 'Optional \u2014 Tap to select',
                                   style: GoogleFonts.manrope(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -997,7 +997,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                   child: _isSubmitting
                       ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.surfaceContainerLowest)))
                       : Text(
-                          'CREATE ORDER â€” ₹${_totalPrice.toStringAsFixed(0)}',
+                          'CREATE ORDER \u2014 ₹${_totalPrice.toStringAsFixed(0)}',
                           style: GoogleFonts.manrope(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 0.5),
                         ),
                 ),

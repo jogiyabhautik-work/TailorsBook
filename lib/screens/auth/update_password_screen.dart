@@ -4,18 +4,21 @@ import '../../main.dart';
 import '../../core/utils/design_system.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class UpdatePasswordScreen extends StatefulWidget {
+  const UpdatePasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  State<UpdatePasswordScreen> createState() => _UpdatePasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
+class _UpdatePasswordScreenState extends State<UpdatePasswordScreen>
     with SingleTickerProviderStateMixin {
-  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
   bool _isLoading = false;
-  bool _emailSent = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
 
@@ -32,17 +35,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _animController.dispose();
     super.dispose();
   }
 
-  Future<void> _sendResetLink() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
+  Future<void> _updatePassword() async {
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please enter your email address'),
+          content: const Text('Password must be at least 8 characters'),
           backgroundColor: DesignSystem.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -51,11 +57,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       return;
     }
 
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
+    if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please enter a valid email address'),
+          content: const Text('Passwords do not match'),
           backgroundColor: DesignSystem.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -67,18 +72,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     setState(() => _isLoading = true);
 
     try {
-      debugPrint('Requesting password reset for: $email with redirect');
-      await supabase.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'io.supabase.tailorsbook://login-callback/',
+      debugPrint('Updating password via passwordRecovery event');
+      await supabase.auth.updateUser(
+        UserAttributes(password: password),
       );
+      
       if (mounted) {
-        setState(() {
-          _emailSent = true;
-          _isLoading = false;
-        });
-        _animController.reset();
-        _animController.forward();
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Password updated successfully!'),
+            backgroundColor: DesignSystem.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+        // Navigate back to login screen, popping all current routes
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -147,14 +157,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 8),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                            onPressed: () => Navigator.pop(context),
-                            padding: EdgeInsets.zero,
-                          ),
                           const Spacer(),
-                          // Lock icon
+                          // Key icon
                           Container(
                             padding: const EdgeInsets.all(DesignSystem.s16),
                             decoration: BoxDecoration(
@@ -162,11 +166,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                               borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
                               border: Border.all(color: brandOrange.withValues(alpha: 0.25)),
                             ),
-                            child: Icon(Icons.lock_reset_rounded, color: brandOrange, size: 28),
+                            child: Icon(Icons.password_rounded, color: brandOrange, size: 28),
                           ),
                           const SizedBox(height: DesignSystem.s20),
                           const Text(
-                            'Forgot\nPassword?',
+                            'Update\nPassword',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 34,
@@ -176,7 +180,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                           ),
                           const SizedBox(height: DesignSystem.s12),
                           Text(
-                            'Enter your registered email and we\'ll send\na reset link straight to your inbox.',
+                            'Enter and confirm your new password below.',
                             style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14, height: 1.5),
                           ),
                           const SizedBox(height: DesignSystem.s24),
@@ -188,12 +192,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
               ),
             ),
 
-            // ── Form / Success State ─────────────────────────────────────────
+            // ── Form State ─────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(DesignSystem.s28),
               child: FadeTransition(
                 opacity: _fadeAnim,
-                child: _emailSent ? _buildSuccessState(brandOrange) : _buildFormState(brandOrange),
+                child: _buildFormState(brandOrange),
               ),
             ),
           ],
@@ -208,7 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       children: [
         const SizedBox(height: DesignSystem.s8),
         Text(
-          'Email Address',
+          'New Password',
           style: GoogleFonts.manrope(
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -217,13 +221,40 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         ),
         const SizedBox(height: DesignSystem.s8),
         TextField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _sendResetLink(),
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.next,
           decoration: DesignSystem.inputField(
-            hint: 'your@email.com',
-            prefixIcon: Icons.alternate_email_rounded,
+            hint: 'Min. 8 characters',
+            prefixIcon: Icons.lock_outline_rounded,
+            suffixIcon: IconButton(
+              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: DesignSystem.muted, size: 20),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignSystem.s20),
+        Text(
+          'Confirm Password',
+          style: GoogleFonts.manrope(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: DesignSystem.charcoal,
+          ),
+        ),
+        const SizedBox(height: DesignSystem.s8),
+        TextField(
+          controller: _confirmPasswordController,
+          obscureText: _obscureConfirmPassword,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _updatePassword(),
+          decoration: DesignSystem.inputField(
+            hint: 'Re-enter your password',
+            prefixIcon: Icons.lock_outline_rounded,
+            suffixIcon: IconButton(
+              icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility, color: DesignSystem.muted, size: 20),
+              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            ),
           ),
         ),
         const SizedBox(height: DesignSystem.s32),
@@ -231,7 +262,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           width: double.infinity,
           height: DesignSystem.s56,
           child: ElevatedButton(
-            onPressed: _isLoading ? null : _sendResetLink,
+            onPressed: _isLoading ? null : _updatePassword,
             style: DesignSystem.primaryButton(brandOrange).copyWith(
               shadowColor: WidgetStatePropertyAll(brandOrange.withValues(alpha: 0.3)),
             ),
@@ -240,93 +271,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.send_rounded, size: 18),
+                      const Icon(Icons.check_circle_outline_rounded, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        'SEND RESET LINK',
+                        'UPDATE PASSWORD',
                         style: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.0),
                       ),
                     ],
                   ),
-          ),
-        ),
-        const SizedBox(height: DesignSystem.s20),
-        Center(
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              '← Back to Login',
-              style: GoogleFonts.manrope(
-                color: DesignSystem.muted,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSuccessState(Color brandOrange) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: DesignSystem.s8),
-        // Success icon
-        Container(
-          padding: const EdgeInsets.all(DesignSystem.s28),
-          decoration: BoxDecoration(
-            color: DesignSystem.tertiaryContainer.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: DesignSystem.tertiaryContainer.withValues(alpha: 0.3), width: 2),
-          ),
-          child: Icon(Icons.mark_email_read_rounded, color: DesignSystem.tertiaryContainer, size: 48),
-        ),
-        const SizedBox(height: DesignSystem.s24),
-        Text(
-          'Check Your Inbox!',
-          style: GoogleFonts.manrope(fontSize: 22, fontWeight: FontWeight.w800, color: DesignSystem.charcoal),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: DesignSystem.s12),
-        Text(
-          'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
-          style: GoogleFonts.manrope(fontSize: 14, color: DesignSystem.muted, height: 1.6),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: DesignSystem.s8),
-        Text(
-          'Didn\'t receive it? Check your spam folder.',
-          style: GoogleFonts.manrope(fontSize: 12, color: DesignSystem.muted.withValues(alpha: 0.7)),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: DesignSystem.s36),
-        SizedBox(
-          width: double.infinity,
-          height: DesignSystem.s56,
-          child: ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: DesignSystem.primaryButton(brandOrange),
-            child: Text(
-              'BACK TO LOGIN',
-              style: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.0),
-            ),
-          ),
-        ),
-        const SizedBox(height: DesignSystem.s16),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _emailSent = false;
-              _emailController.clear();
-            });
-            _animController.reset();
-            _animController.forward();
-          },
-          child: Text(
-            'Try a different email',
-            style: GoogleFonts.manrope(color: DesignSystem.muted, fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ),
       ],

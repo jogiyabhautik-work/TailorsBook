@@ -11,6 +11,7 @@ import '../../models/order_model.dart';
 import '../../models/customer_model.dart';
 import '../order/order_detail_screen.dart';
 import '../dashboard/business_dashboard_screen.dart';
+import '../tabs/worker_tab.dart';
 import '../../core/utils/design_system.dart';
 import '../../core/utils/responsive.dart';
 import '../../widgets/common/responsive_widgets.dart';
@@ -326,8 +327,8 @@ class _HomeTabState extends State<HomeTab> {
           }
         })),
         SizedBox(width: R.gap(context)),
-        Expanded(child: _quickActionBtn(icon: Icons.straighten_rounded, label: 'Measure', color: DesignSystem.info, onTap: () {
-          TemplateProviderWrapper.of(context, listen: false).setIndex(3);
+        Expanded(child: _quickActionBtn(icon: Icons.engineering_rounded, label: 'Workers', color: DesignSystem.info, onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkerTab()));
         })),
         SizedBox(width: R.gap(context)),
         Expanded(child: _quickActionBtn(icon: Icons.people_rounded, label: 'Clients', color: DesignSystem.primaryContainer, onTap: () {

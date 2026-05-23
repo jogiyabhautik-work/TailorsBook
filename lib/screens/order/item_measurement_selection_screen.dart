@@ -105,6 +105,7 @@ class _ItemMeasurementSelectionScreenState extends State<ItemMeasurementSelectio
       },
       child: Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: DesignSystem.white,
         elevation: 0,
@@ -154,6 +155,7 @@ class _ItemMeasurementSelectionScreenState extends State<ItemMeasurementSelectio
           ? const Center(child: CircularProgressIndicator())
           : _showNewEntry && _selectedTemplate != null
                ? MeasurementEntryView(
+                   key: ValueKey('item_entry_${widget.customer.id}_${_selectedTemplate?.id}'),
                    customer: widget.customer,
                    initialTemplate: _selectedTemplate,
                    onRecordSaved: (record) async {

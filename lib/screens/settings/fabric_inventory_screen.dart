@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/responsive_widgets.dart';
 import '../../widgets/common/provider_wrappers.dart';
@@ -21,99 +22,196 @@ class _FabricInventoryScreenState extends State<FabricInventoryScreen> {
     final priceController = TextEditingController(text: fabric != null ? fabric.unitPricePerMeter.toString() : '');
     
     final formKey = GlobalKey<FormState>();
+    final brandOrange = Theme.of(context).colorScheme.primary;
 
     showResponsiveDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        title: Text(fabric == null ? 'Add Fabric' : 'Edit Fabric', style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: KeyboardSafeDialogScrollView(
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Fabric Name', hintText: 'e.g. Premium Linen'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
+      builder: (ctx) {
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (dialogContext, setState) {
+            return AlertDialog(
+              backgroundColor: DesignSystem.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DesignSystem.radiusXl),
+              ),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              title: Text(
+                fabric == null ? 'Add Fabric' : 'Edit Fabric',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  color: DesignSystem.charcoal,
                 ),
-                TextFormField(
-                  controller: typeController,
-                  decoration: const InputDecoration(labelText: 'Fabric Type', hintText: 'e.g. Cotton, Linen'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              content: KeyboardSafeDialogScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: nameController,
+                        enabled: !isSaving,
+                        decoration: DesignSystem.inputField(
+                          label: 'Fabric Name',
+                          hint: 'e.g. Premium Linen',
+                          prefixIcon: Icons.shopping_bag_outlined,
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: typeController,
+                        enabled: !isSaving,
+                        decoration: DesignSystem.inputField(
+                          label: 'Fabric Type',
+                          hint: 'e.g. Cotton, Linen',
+                          prefixIcon: Icons.category_outlined,
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: colorController,
+                        enabled: !isSaving,
+                        decoration: DesignSystem.inputField(
+                          label: 'Color',
+                          hint: 'e.g. Navy Blue',
+                          prefixIcon: Icons.color_lens_outlined,
+                        ),
+                        validator: (v) => v!.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: qtyController,
+                        enabled: !isSaving,
+                        decoration: DesignSystem.inputField(
+                          label: 'Quantity (Meters)',
+                          hint: '0.0',
+                          prefixIcon: Icons.linear_scale_rounded,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) {
+                          if (v!.isEmpty) return 'Required';
+                          if (double.tryParse(v) == null) return 'Invalid number';
+                          if (double.parse(v) < 0) return 'Cannot be negative';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: priceController,
+                        enabled: !isSaving,
+                        decoration: DesignSystem.inputField(
+                          label: 'Price per Meter (₹)',
+                          hint: '0.0',
+                          prefixIcon: Icons.currency_rupee_rounded,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: (v) {
+                          if (v!.isEmpty) return 'Required';
+                          if (double.tryParse(v) == null) return 'Invalid number';
+                          if (double.parse(v) < 0) return 'Cannot be negative';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                TextFormField(
-                  controller: colorController,
-                  decoration: const InputDecoration(labelText: 'Color', hintText: 'e.g. Navy Blue'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              actions: [
+                OutlinedButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: DesignSystem.charcoal,
+                    side: const BorderSide(color: DesignSystem.outlineVariant),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DesignSystem.radiusBtn),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+                  ),
                 ),
-                TextFormField(
-                  controller: qtyController,
-                  decoration: const InputDecoration(labelText: 'Quantity (Meters)'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: (v) {
-                    if (v!.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null) return 'Invalid number';
-                    if (double.parse(v) < 0) return 'Cannot be negative';
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: priceController,
-                  decoration: const InputDecoration(labelText: 'Price per Meter (₹)'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: (v) {
-                    if (v!.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null) return 'Invalid number';
-                    if (double.parse(v) < 0) return 'Cannot be negative';
-                    return null;
-                  },
-                ),
-               ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
-          ElevatedButton(
-            onPressed: () async {
-              if (formKey.currentState!.validate()) {
-                final provider = FabricProviderWrapper.of(context, listen: false);
-                final newFabric = ShopFabricModel(
-                  id: fabric?.id ?? '',
-                  shopId: fabric?.shopId ?? '',
-                  name: nameController.text.trim(),
-                  fabricType: typeController.text.trim(),
-                  color: colorController.text.trim(),
-                  quantityMeters: double.parse(qtyController.text.trim()),
-                  unitPricePerMeter: double.parse(priceController.text.trim()),
-                  createdAt: fabric?.createdAt ?? DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            setState(() {
+                              isSaving = true;
+                            });
 
-                Navigator.pop(ctx);
-                
-                bool success;
-                if (fabric == null) {
-                  success = await provider.addShopFabric(newFabric);
-                } else {
-                  success = await provider.updateShopFabric(newFabric);
-                }
+                            final provider = FabricProviderWrapper.of(context, listen: false);
+                            final newFabric = ShopFabricModel(
+                              id: fabric?.id ?? '',
+                              shopId: fabric?.shopId ?? '',
+                              name: nameController.text.trim(),
+                              fabricType: typeController.text.trim(),
+                              color: colorController.text.trim(),
+                              quantityMeters: double.parse(qtyController.text.trim()),
+                              unitPricePerMeter: double.parse(priceController.text.trim()),
+                              createdAt: fabric?.createdAt ?? DateTime.now(),
+                              updatedAt: DateTime.now(),
+                            );
 
-                if (context.mounted) {
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fabric saved successfully')));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Error saving fabric')));
-                  }
-                }
-              }
-            },
-            child: const Text('SAVE'),
-          ),
-        ],
-      ),
+                            bool success;
+                            if (fabric == null) {
+                              success = await provider.addShopFabric(newFabric);
+                            } else {
+                              success = await provider.updateShopFabric(newFabric);
+                            }
+
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                            }
+
+                            if (!mounted) return;
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Fabric saved successfully')),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(provider.errorMessage ?? 'Error saving fabric')),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brandOrange,
+                    foregroundColor: DesignSystem.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DesignSystem.radiusBtn),
+                    ),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.white),
+                          ),
+                        )
+                      : Text(
+                          'Save',
+                          style: GoogleFonts.manrope(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     ).whenComplete(() {
       nameController.dispose();
       typeController.dispose();
@@ -136,12 +234,11 @@ class _FabricInventoryScreenState extends State<FabricInventoryScreen> {
               Navigator.pop(ctx);
               final provider = FabricProviderWrapper.of(context, listen: false);
               final success = await provider.deleteShopFabric(fabric.id);
-              if (context.mounted) {
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fabric deleted')));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Error deleting fabric')));
-                }
+              if (!mounted) return;
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fabric deleted')));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Error deleting fabric')));
               }
             },
             child: const Text('DELETE', style: TextStyle(color: DesignSystem.error)),

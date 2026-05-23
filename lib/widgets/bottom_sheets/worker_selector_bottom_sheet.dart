@@ -268,7 +268,7 @@ class _WorkerOption extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'âš ï¸$warningBadge',
+                  '\u26A0\uFE0F $warningBadge',
                   style: GoogleFonts.manrope(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,

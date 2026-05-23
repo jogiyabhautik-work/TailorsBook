@@ -99,7 +99,18 @@ class _WorkerTabState extends State<WorkerTab> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('WORKSHOP', style: DesignSystem.pageTitle),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: DesignSystem.charcoal),
+                                onPressed: () => Navigator.pop(context),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: DesignSystem.s12),
+                              Text('WORKSHOP', style: DesignSystem.pageTitle),
+                            ],
+                          ),
                           Row(
                             children: [
                               GestureDetector(
@@ -130,7 +141,7 @@ class _WorkerTabState extends State<WorkerTab> {
                         ],
                       ),
                       SizedBox(height: R.value(context, regular: 4, smallPhone: 2)),
-                      Text('${workerProvider.workers.length} workers Â· $totalCompleted completed', style: DesignSystem.greetingText),
+                      Text('${workerProvider.workers.length} workers \u00B7 $totalCompleted completed', style: DesignSystem.greetingText),
                     ],
                   ),
                 ),

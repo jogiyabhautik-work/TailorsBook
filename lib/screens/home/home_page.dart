@@ -27,13 +27,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // Page order: Home, Measurements, Orders (center), Customers, Workers
+    // Page order: Home, Orders, Customers
     _pages = const [
       HomeTab(),              // Index 0
-      MeasurementTab(),       // Index 1
-      OrdersTab(),            // Index 2 (center)
-      CustomerTab(),          // Index 3
-      WorkerTab(),            // Index 4
+      OrdersTab(),            // Index 1
+      CustomerTab(),          // Index 2
     ];
   }
 

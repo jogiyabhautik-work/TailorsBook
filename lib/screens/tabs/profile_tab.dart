@@ -156,15 +156,16 @@ class _ProfileTabState extends State<ProfileTab> {
     if (apk != null && apk.isNotEmpty) {
       final uri = Uri.parse(apk);
       launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to open update link')));
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to open update link')));
         return true;
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Update flow not configured for this platform')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Update flow not configured for this platform')));
     }
   }
 
   Future<void> _performAndroidUpdateFlow(AppUpdateInfo info) async {
+    bool playStoreHandled = false;
     try {
       final updateInfo = await InAppUpdate.checkForUpdate();
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
@@ -173,6 +174,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
         if (info.updateRequired && immediateAllowed) {
           await InAppUpdate.performImmediateUpdate();
+          playStoreHandled = true;
           return;
         }
 
@@ -202,27 +204,31 @@ class _ProfileTabState extends State<ProfileTab> {
               ],
             ),
           );
+          playStoreHandled = true;
           return;
         }
 
         if (immediateAllowed) {
           await InAppUpdate.performImmediateUpdate();
+          playStoreHandled = true;
           return;
         }
       }
+    } catch (e) {
+      debugPrint('InAppUpdate check skipped or failed: $e');
+    }
 
+    if (!playStoreHandled) {
       final apk = info.apkUrl;
       if (apk != null && apk.isNotEmpty) {
         final uri = Uri.parse(apk);
         launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to open update link')));
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to open update link')));
           return true;
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No Play Store update available and no apk link provided')));
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No Play Store update available and no apk link provided')));
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update check failed: $e')));
     }
   }
 

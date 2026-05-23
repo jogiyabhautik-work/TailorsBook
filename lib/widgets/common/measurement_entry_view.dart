@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import '../../models/measurement_template.dart';
 import '../../models/measurement_record.dart';
 import '../../models/customer_model.dart';
@@ -16,8 +15,17 @@ class MeasurementEntryView extends StatefulWidget {
   final VoidCallback onSave;
   final Function(MeasurementRecord)? onRecordSaved;
   final ValueChanged<bool>? onDirtyChanged;
+  final bool isTabScreen;
 
-  const MeasurementEntryView({super.key, required this.customer, required this.onSave, this.onRecordSaved, this.initialTemplate, this.onDirtyChanged});
+  const MeasurementEntryView({
+    super.key,
+    required this.customer,
+    required this.onSave,
+    this.onRecordSaved,
+    this.initialTemplate,
+    this.onDirtyChanged,
+    this.isTabScreen = false,
+  });
 
   @override
   State<MeasurementEntryView> createState() => _MeasurementEntryViewState();
@@ -58,8 +66,7 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     if (user != null && user.userMetadata != null) {
       _tailorType = user.userMetadata!['tailor_type'] ?? 'Both';
     }
-    
-    // Pre-select template if provided
+
     if (widget.initialTemplate != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
@@ -75,11 +82,17 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     setState(() {
       _selectedTemplate = template;
       _fieldControllers.clear();
+      // Dispose old focus nodes before clearing
+      for (var node in _fieldFocusNodes.values) {
+        node.dispose();
+      }
+      _fieldFocusNodes.clear();
       _autofilledFields.clear();
       _hasUnsavedChanges = false;
-      
-      final latest = TemplateProviderWrapper.of(context).getLatestMeasurement(widget.customer.id, template.id);
-      
+
+      final latest = TemplateProviderWrapper.of(context)
+          .getLatestMeasurement(widget.customer.id, template.id);
+
       for (var field in template.fields) {
         final val = latest?.values[field.id]?.toString() ?? '';
         _fieldControllers[field.id] = TextEditingController(text: val);
@@ -96,15 +109,20 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
   Widget build(BuildContext context) {
     final templateProvider = TemplateProviderWrapper.of(context);
 
+    // FIX: The Column will size itself based on available space.
+    // The parent Scaffold MUST have resizeToAvoidBottomInset: false
+    // so that the keyboard doesn't collapse this widget's height.
     return Column(
       children: [
-        // Responsive Template Header
         _buildTemplateBar(templateProvider),
-
         if (_selectedTemplate != null)
-          Expanded(child: _buildMeasurementForm())
+          Expanded(
+            child: _buildMeasurementForm(),
+          )
         else
-          Expanded(child: _buildSelectTemplateState(templateProvider)),
+          Expanded(
+            child: _buildSelectTemplateState(templateProvider),
+          ),
       ],
     );
   }
@@ -119,8 +137,17 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: brandOrange.withValues(alpha: 0.3), width: 1.5),
-          boxShadow: [BoxShadow(color: brandOrange.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(
+            color: brandOrange.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: brandOrange.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,10 +156,21 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Selected Product', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Selected Product',
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Text(
                     _selectedTemplate!.name,
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Color(0xFF1C1C1C)),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                      color: Color(0xFF1C1C1C),
+                    ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
@@ -153,7 +191,10 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
               icon: Icon(Icons.swap_horiz_rounded, size: 18, color: brandOrange),
               label: Text(
                 'Change',
-                style: TextStyle(color: brandOrange, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: brandOrange,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -167,14 +208,21 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     final brandOrange = Theme.of(context).colorScheme.primary;
     final gridItems = _selectedTemplate!.fields;
 
+    // FIX: Use SingleChildScrollView with proper keyboard inset handling.
+    // The key is using MediaQuery.of(context).viewInsets.bottom to add
+    // padding dynamically. This requires resizeToAvoidBottomInset: false
+    // on the parent Scaffold.
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      // FIX: Correct way to handle keyboard inset
       padding: EdgeInsets.fromLTRB(
         R.pagePadding(context),
         R.gap(context),
         R.pagePadding(context),
-        effectiveBottomPadding(context),
+        widget.isTabScreen
+            ? effectiveBottomPadding(context)
+            : screenBottomPadding(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +232,13 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
             builder: (context, constraints) {
               final w = constraints.maxWidth;
               final crossAxisCount = w < 420 ? 2 : (w < 900 ? 3 : 4);
-              final childAspectRatio = 1.4; // Adjusted for better fit
+              // FIX: Use a FIXED item height (100.0) instead of aspect ratio.
+              // Aspect ratio-based grids can collapse to 0 height when the parent
+              // height changes (e.g., keyboard opens). Fixed height is stable.
+              const double itemHeight = 100.0;
+              final itemWidth =
+                  (w - (crossAxisCount - 1) * 12) / crossAxisCount;
+              final childAspectRatio = itemWidth / itemHeight;
 
               return GridView.builder(
                 shrinkWrap: true,
@@ -201,11 +255,11 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
                   final isLastField = index == gridItems.length - 1;
                   final focusNode = _fieldFocusNodes[field.id];
                   final controller = _fieldControllers[field.id];
-                  
-                  // Skip if controller or focusNode missing (shouldn't happen but safety check)
+
                   if (focusNode == null || controller == null) {
                     return const SizedBox.shrink();
                   }
+
                   return ListenableBuilder(
                     listenable: focusNode,
                     builder: (context, child) {
@@ -213,13 +267,25 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: hasFocus ? brandOrange.withValues(alpha: 0.02) : Colors.white,
+                          color: hasFocus
+                              ? brandOrange.withValues(alpha: 0.02)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: hasFocus ? brandOrange : const Color(0xFFEEEEEE),
+                            color: hasFocus
+                                ? brandOrange
+                                : const Color(0xFFEEEEEE),
                             width: hasFocus ? 2 : 1.5,
                           ),
-                          boxShadow: hasFocus ? [BoxShadow(color: brandOrange.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                          boxShadow: hasFocus
+                              ? [
+                                  BoxShadow(
+                                    color: brandOrange.withValues(alpha: 0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,11 +300,14 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
                                   fontWeight: FontWeight.w900,
                                   fontSize: 9,
                                   letterSpacing: 0.5,
-                                  color: hasFocus ? brandOrange : Colors.grey.shade400,
+                                  color: hasFocus
+                                      ? brandOrange
+                                      : Colors.grey.shade400,
                                 ),
                               ),
                             ),
-                            if (_autofilledFields.contains(field.id) && controller.text.isNotEmpty)
+                            if (_autofilledFields.contains(field.id) &&
+                                controller.text.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text(
@@ -254,49 +323,78 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
                             TextField(
                               controller: controller,
                               focusNode: focusNode,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              textInputAction: isLastField ? TextInputAction.done : TextInputAction.next,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              textInputAction: isLastField
+                                  ? TextInputAction.done
+                                  : TextInputAction.next,
                               textAlign: TextAlign.start,
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF1C1C1C)),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: Color(0xFF1C1C1C),
+                              ),
                               onSubmitted: (_) {
                                 if (isLastField) {
-                                  FocusScope.of(context).requestFocus(_instructionsFocusNode);
+                                  FocusScope.of(context).requestFocus(
+                                    _instructionsFocusNode,
+                                  );
                                 } else {
                                   final nextIndex = index + 1;
                                   if (nextIndex < gridItems.length) {
                                     final nextField = gridItems[nextIndex];
-                                    FocusScope.of(context).requestFocus(_fieldFocusNodes[nextField.id]);
+                                    FocusScope.of(context).requestFocus(
+                                      _fieldFocusNodes[nextField.id],
+                                    );
                                   }
                                 }
                               },
                               decoration: InputDecoration(
                                 hintText: '0.0',
-                                hintStyle: TextStyle(color: Colors.grey.shade300),
+                                hintStyle: TextStyle(
+                                  color: Colors.grey.shade300,
+                                ),
                                 suffixText: '"',
-                                suffixStyle: TextStyle(color: hasFocus ? brandOrange : Colors.grey.shade400, fontWeight: FontWeight.bold),
+                                suffixStyle: TextStyle(
+                                  color: hasFocus
+                                      ? brandOrange
+                                      : Colors.grey.shade400,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: brandOrange, width: 1.5),
+                                  borderSide: BorderSide(
+                                    color: brandOrange,
+                                    width: 1.5,
+                                  ),
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
                                 isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                               ),
                               onChanged: (v) {
                                 _markDirty();
                                 setState(() {
                                   _autofilledFields.remove(field.id);
                                 });
-                              }, 
+                              },
                             ),
                           ],
                         ),
@@ -307,7 +405,7 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
               );
             },
           ),
-          
+
           const SizedBox(height: 32),
           _buildSectionHeader('MASTER INSTRUCTIONS & NOTES'),
           const SizedBox(height: 12),
@@ -323,18 +421,25 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
               focusNode: _instructionsFocusNode,
               maxLines: 4,
               textInputAction: TextInputAction.done,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
               onChanged: (_) => _markDirty(),
               decoration: InputDecoration(
-                hintText: 'e.g. Boat neck design, Princess cut, Special sleeve length...',
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                hintText:
+                    'e.g. Boat neck design, Princess cut, Special sleeve length...',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 13,
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 border: InputBorder.none,
               ),
             ),
           ),
-          
+
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -344,11 +449,23 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: brandOrange,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: _isSaving
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('SAVE MEASUREMENTS', style: TextStyle(fontWeight: FontWeight.w900)),
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'SAVE MEASUREMENTS',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
             ),
           ),
         ],
@@ -361,15 +478,22 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     if (_categoryFilter != _lastCategoryFilter || cv != _lastCacheVersion) {
       _lastCategoryFilter = _categoryFilter;
       _lastCacheVersion = cv;
-      _cachedFilteredTemplates = provider.getMostUsedTemplates().where((t) {
+      _cachedFilteredTemplates =
+          provider.getMostUsedTemplates().where((t) {
         final type = _tailorType.toLowerCase();
-        if (type == 'ladies' && t.category == TemplateCategory.gents) return false;
-        if (type == 'gents' && t.category == TemplateCategory.ladies) return false;
+        if (type == 'ladies' && t.category == TemplateCategory.gents) {
+          return false;
+        }
+        if (type == 'gents' && t.category == TemplateCategory.ladies) {
+          return false;
+        }
         if (_categoryFilter == 'ladies') {
-          return t.category == TemplateCategory.ladies || t.category == TemplateCategory.both;
+          return t.category == TemplateCategory.ladies ||
+              t.category == TemplateCategory.both;
         }
         if (_categoryFilter == 'gents') {
-          return t.category == TemplateCategory.gents || t.category == TemplateCategory.both;
+          return t.category == TemplateCategory.gents ||
+              t.category == TemplateCategory.both;
         }
         return true;
       }).toList();
@@ -380,18 +504,27 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      // FIX: Same keyboard-aware padding here
       padding: EdgeInsets.fromLTRB(
         R.pagePadding(context),
         R.gap(context),
         R.pagePadding(context),
-        effectiveBottomPadding(context),
+        widget.isTabScreen
+            ? effectiveBottomPadding(context)
+            : screenBottomPadding(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Garment Type', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const Text(
+            'Select Garment Type',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 4),
-          const Text('Most used products appear first', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            'Most used products appear first',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -413,45 +546,56 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: childAspectRatio,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  itemCount: templates.length,
-                  itemBuilder: (ctx, index) {
-                    final t = templates[index];
-                    return InkWell(
-                      onTap: () => _onTemplateSelected(t).then((_) => null),
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: const Color(0xFFEEEEEE)),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: brandOrange.withValues(alpha: 0.1),
-                              child: Icon(Icons.checkroom_rounded, color: brandOrange),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center),
-                          ],
-                        ),
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: childAspectRatio,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                ),
+                itemCount: templates.length,
+                itemBuilder: (ctx, index) {
+                  final t = templates[index];
+                  return InkWell(
+                    onTap: () => _onTemplateSelected(t),
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFEEEEEE)),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      );
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor:
+                                brandOrange.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.checkroom_rounded,
+                              color: brandOrange,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            t.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 
   Widget _buildCategoryChip(String label, String value) {
@@ -465,7 +609,9 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
         decoration: BoxDecoration(
           color: selected ? orange.withValues(alpha: 0.12) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? orange : const Color(0xFFEEEEEE)),
+          border: Border.all(
+            color: selected ? orange : const Color(0xFFEEEEEE),
+          ),
         ),
         child: Text(
           label,
@@ -517,61 +663,97 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     final proceed = await showResponsiveDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Missing Measurements', style: TextStyle(fontWeight: FontWeight.w900)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: const Text(
+          'Missing Measurements',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
         content: KeyboardSafeDialogScrollView(
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${emptyFields.length} field${emptyFields.length > 1 ? 's' : ''} ${emptyFields.length > 1 ? 'have' : 'has'} no value:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${emptyFields.length} field${emptyFields.length > 1 ? 's' : ''} '
+                '${emptyFields.length > 1 ? 'have' : 'has'} no value:',
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: emptyFields.map((f) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange.shade700),
-                      const SizedBox(width: 8),
-                      Text(f.label, style: TextStyle(fontSize: 13, color: Colors.orange.shade900, fontWeight: FontWeight.w600)),
-                    ],
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.2),
                   ),
-                )).toList(),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: emptyFields
+                      .map(
+                        (f) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 14,
+                                color: Colors.orange.shade700,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                f.label,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.orange.shade900,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'You can save with missing values, but the tailor may not have enough information to stitch accurately.',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.4),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'You can save with missing values, but the tailor may not '
+                'have enough information to stitch accurately.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('EDIT', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'EDIT',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('SAVE ANYWAY', style: TextStyle(fontWeight: FontWeight.w900)),
+            child: const Text(
+              'SAVE ANYWAY',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
           ),
         ],
       ),
@@ -580,26 +762,37 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     return proceed ?? false;
   }
 
-
-
   Future<bool> _confirmDiscard() async {
     if (!_hasUnsavedChanges) return true;
 
     final discard = await showResponsiveDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Unsaved Changes', style: TextStyle(fontWeight: FontWeight.w900)),
-        content: const Text('You have unsaved changes. Do you want to discard them?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: const Text(
+          'Unsaved Changes',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: const Text(
+          'You have unsaved changes. Do you want to discard them?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('CONTINUE EDITING', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'CONTINUE EDITING',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('DISCARD', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'DISCARD',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -610,21 +803,21 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
 
   void _save() async {
     final provider = TemplateProviderWrapper.of(context);
-    
+
     final canSave = await _warnEmptyFields();
     if (!canSave || !mounted) return;
 
     setState(() => _isSaving = true);
-    
+
     final Map<String, double> values = {};
     for (var entry in _fieldControllers.entries) {
       values[entry.key] = double.tryParse(entry.value.text) ?? 0.0;
     }
 
     final String tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    
+
     final record = MeasurementRecord(
-      id: tempId, 
+      id: tempId,
       customerId: widget.customer.id,
       customerName: widget.customer.name,
       templateId: _selectedTemplate!.id,
@@ -637,20 +830,33 @@ class _MeasurementEntryViewState extends State<MeasurementEntryView> {
     try {
       final savedRecord = await provider.addMeasurementToDB(record);
       if (!mounted) return;
-      
+
       if (savedRecord != null) {
         _resetDirty();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Measurements saved successfully!'), backgroundColor: Colors.green));
-        if (widget.onRecordSaved != null) {
-          widget.onRecordSaved!(savedRecord);
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Measurements saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        widget.onRecordSaved?.call(savedRecord);
         widget.onSave();
       } else {
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save measurements'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save measurements'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

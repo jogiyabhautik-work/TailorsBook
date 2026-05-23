@@ -109,6 +109,7 @@ class _ViewMeasurementScreenState extends State<ViewMeasurementScreen> {
       },
       child: Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: DesignSystem.white,
         elevation: 0,
@@ -127,7 +128,7 @@ class _ViewMeasurementScreenState extends State<ViewMeasurementScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1C1C1C)),
             ),
             Text(
-              '${widget.item.productName} â€¢ ${widget.customer.name}',
+              '${widget.item.productName} \u2022 ${widget.customer.name}',
               style: TextStyle(fontSize: 11, color: brandOrange, fontWeight: FontWeight.bold),
             ),
           ],
@@ -145,6 +146,7 @@ class _ViewMeasurementScreenState extends State<ViewMeasurementScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _isEditing
               ? MeasurementEntryView(
+                  key: ValueKey('view_entry_${widget.customer.id}_${template.id}'),
                   customer: widget.customer,
                   initialTemplate: template,
                   onRecordSaved: (newRecord) async {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/config/supabase_config.dart';
@@ -16,15 +17,17 @@ import 'core/utils/app_refresh_controller.dart';
 import 'l10n/app_localizations.dart';
 export 'l10n/app_localizations.dart';
 import 'screens/auth/splash_screen.dart';
+import 'screens/auth/update_password_screen.dart';
 import 'widgets/common/provider_wrappers.dart';
 import 'core/utils/local_database.dart';
 import 'core/utils/design_system.dart';
 
-// Global client accessor â€” use anywhere in your app
+// Global client accessor — use anywhere in your app
 SupabaseClient get supabase => Supabase.instance.client;
 
-// Global UI messaging
+// Global UI messaging and navigation
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void showGlobalSnackBar(String message, {bool isError = false}) {
   scaffoldMessengerKey.currentState?.showSnackBar(
@@ -81,6 +84,8 @@ class _MyAppState extends State<MyApp> {
   late final DashboardProvider _dashboardProvider;
   late final AppRefreshController _refreshController;
 
+  StreamSubscription<AuthState>? _authStateSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -97,10 +102,19 @@ class _MyAppState extends State<MyApp> {
     _orderProvider.fetchOrders();
     _workerProvider.fetchWorkers();
     _fabricProvider.fetchFabrics();
+
+    _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      if (event == AuthChangeEvent.passwordRecovery) {
+        debugPrint('Forgot Password Redirect: AuthChangeEvent.passwordRecovery received!');
+        navigatorKey.currentState?.pushNamed('/update-password');
+      }
+    });
   }
 
   @override
   void dispose() {
+    _authStateSubscription?.cancel();
     super.dispose();
   }
 
@@ -127,9 +141,13 @@ class _MyAppState extends State<MyApp> {
                           // Language support is postponed. Locale is locked to English.
                           // See lib/providers/language_provider.dart for the feature flag.
                           return MaterialApp(
+                          navigatorKey: navigatorKey,
                           debugShowCheckedModeBanner: false,
                           scaffoldMessengerKey: scaffoldMessengerKey,
                           title: 'TailorsBook',
+                          routes: {
+                            '/update-password': (context) => const UpdatePasswordScreen(),
+                          },
                           locale: const Locale('en'),
                           supportedLocales: AppLocalizations.supportedLocales,
                           localizationsDelegates: const [
