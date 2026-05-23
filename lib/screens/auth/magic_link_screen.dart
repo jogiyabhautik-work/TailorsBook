@@ -176,8 +176,10 @@ class _MagicLinkScreenState extends State<MagicLinkScreen>
     return Scaffold(
       backgroundColor: DesignSystem.surface,
       resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
           children: [
             // ── Premium Dark Header ──────────────────────────────────────────
             Container(

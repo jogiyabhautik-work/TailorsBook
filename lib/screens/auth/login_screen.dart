@@ -17,6 +17,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
@@ -30,15 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Please enter email and password'), backgroundColor: DesignSystem.error),
-      );
-      return;
-    }
 
     setState(() => _isLoading = true);
 
@@ -59,14 +55,22 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message), backgroundColor: DesignSystem.error),
+          SnackBar(
+            content: Text(error.message),
+            backgroundColor: DesignSystem.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (error) {
       if (context.mounted) {
         final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n?.unexpectedError ?? 'An unexpected error occurred'), backgroundColor: DesignSystem.error),
+          SnackBar(
+            content: Text(l10n?.unexpectedError ?? 'An unexpected error occurred'),
+            backgroundColor: DesignSystem.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -85,8 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: DesignSystem.white,
-      body: SingleChildScrollView(
-        child: Column(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
           children: [
             // Top Header/Art
             Container(
@@ -154,23 +161,34 @@ class _LoginScreenState extends State<LoginScreen> {
             ConstrainedContent(
               child: Padding(
                 padding: const EdgeInsets.all(DesignSystem.s28),
-                child: Column(
-                  children: [
-                    const SizedBox(height: DesignSystem.s20),
-                      _buildTextField(
-                        controller: _emailController,
-                        hint: StaticEnglish.email,
-                        icon: Icons.alternate_email_rounded,
-                      ),
-                    const SizedBox(height: DesignSystem.s20),
-                      _buildTextField(
-                        controller: _passwordController,
-                        hint: StaticEnglish.password,
-                        icon: Icons.lock_outline_rounded,
-                        isPassword: true,
-                        obscure: _obscureText,
-                        onToggle: () => setState(() => _obscureText = !_obscureText),
-                      ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: DesignSystem.s20),
+                        _buildTextField(
+                          controller: _emailController,
+                          hint: StaticEnglish.email,
+                          icon: Icons.alternate_email_rounded,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) return 'Please enter your email';
+                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) return 'Please enter a valid email';
+                            return null;
+                          },
+                        ),
+                      const SizedBox(height: DesignSystem.s20),
+                        _buildTextField(
+                          controller: _passwordController,
+                          hint: StaticEnglish.password,
+                          icon: Icons.lock_outline_rounded,
+                          isPassword: true,
+                          obscure: _obscureText,
+                          onToggle: () => setState(() => _obscureText = !_obscureText),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Please enter your password';
+                            return null;
+                          },
+                        ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -244,10 +262,12 @@ class _LoginScreenState extends State<LoginScreen> {
     bool isPassword = false,
     bool obscure = false,
     VoidCallback? onToggle,
+    String? Function(String?)? validator,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscure,
+      validator: validator,
       decoration: DesignSystem.inputField(
         hint: hint,
         prefixIcon: icon,

@@ -15,6 +15,7 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _shopController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -42,6 +43,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final name = _nameController.text.trim();
@@ -50,13 +53,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final address = _addressController.text.trim();
     final pin = _pinCodeController.text.trim();
     final state = _stateController.text.trim();
-
-    if (email.isEmpty || password.isEmpty || name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(StaticEnglish.fillFieldsError), backgroundColor: DesignSystem.error),
-      );
-      return;
-    }
 
     setState(() => _isLoading = true);
 
@@ -75,43 +71,60 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         },
       );
 
-      if (context.mounted) {
-        if (response.user != null) {
-          // Insert into the public tailors table
-          await supabase.from('tailors').insert({
-            'id': response.user!.id,
-            'full_name': name,
-            'shop_name': shop,
-            'phone': phone,
-            'tailor_type': _tailorType,
-            'address': address,
-            'pincode': pin,
-            'state': state,
-          });
-
-          if (!context.mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(StaticEnglish.regSuccess)),
-          );
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MyHomePage(title: 'TailorsBook')),
-            (route) => false,
-          );
-        }
+      final user = response.user;
+      if (user == null) {
+        throw const AuthException('Registration failed. Please try again.');
       }
+
+      // Insert into the public tailors table
+      // We do this BEFORE context.mounted check because it's a critical data step.
+      // But we need context for navigation later.
+      await supabase.from('tailors').insert({
+        'id': user.id,
+        'full_name': name,
+        'shop_name': shop,
+        'phone': phone,
+        'tailor_type': _tailorType,
+        'address': address,
+        'pincode': pin,
+        'state': state,
+      });
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(StaticEnglish.regSuccess),
+          backgroundColor: DesignSystem.tertiaryContainer,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MyHomePage(title: 'TailorsBook')),
+        (route) => false,
+      );
     } on AuthException catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message), backgroundColor: DesignSystem.error),
+          SnackBar(
+            content: Text(error.message),
+            backgroundColor: DesignSystem.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (error) {
+      debugPrint('Registration Error: $error');
       if (context.mounted) {
         final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n?.unexpectedError ?? 'An unexpected error occurred'), backgroundColor: DesignSystem.error),
+          SnackBar(
+            content: Text(l10n?.unexpectedError ?? 'An unexpected error occurred during registration'),
+            backgroundColor: DesignSystem.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -126,6 +139,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final brandOrange = Theme.of(context).colorScheme.primary;
     return Scaffold(
       backgroundColor: DesignSystem.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded, color: DesignSystem.charcoal),
@@ -135,15 +149,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        child: ConstrainedContent(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: ConstrainedContent(
           maxWidth: 600,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: DesignSystem.s10),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: DesignSystem.s10),
                 Container(
                   padding: const EdgeInsets.all(DesignSystem.s12),
                   decoration: BoxDecoration(
@@ -173,6 +191,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   label: StaticEnglish.fullName,
                   icon: Icons.person_outline_rounded,
                   hint: 'e.g., Ahmed Khan',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return 'Please enter your full name';
+                    if (value.trim().length < 3) return 'Name must be at least 3 characters';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: DesignSystem.s20),
                 _buildInput(
@@ -181,6 +204,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   icon: Icons.phone_android_rounded,
                   hint: 'e.g., 9876543210',
                   keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return 'Please enter your phone number';
+                    if (!RegExp(r'^\d{10}$').hasMatch(value.trim())) return 'Please enter a valid 10-digit phone number';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: DesignSystem.s20),
                 _buildInput(
@@ -189,6 +217,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   icon: Icons.alternate_email_rounded,
                   hint: 'ahmed@royaltailors.com',
                   keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return 'Please enter your email';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) return 'Please enter a valid email address';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: DesignSystem.s20),
                 _buildInput(
@@ -199,6 +232,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   isPassword: true,
                   obscure: _obscureText,
                   onToggle: () => setState(() => _obscureText = !_obscureText),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Please choose a password';
+                    if (value.length < 6) return 'Password must be at least 6 characters';
+                    return null;
+                  },
                 ),
 
                 _buildSectionHeader(StaticEnglish.storeDetails),
@@ -207,9 +245,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   label: 'SHOP NAME',
                   icon: Icons.storefront_rounded,
                   hint: 'e.g., Royal Tailors & Co.',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return 'Please enter your shop name';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: DesignSystem.s20),
-                _buildTailorTypeSelector(null),
+                _buildTailorTypeSelector(),
 
                 _buildSectionHeader(StaticEnglish.location),
                 _buildInput(
@@ -217,9 +259,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   label: StaticEnglish.storeAddress,
                   icon: Icons.map_outlined,
                   hint: 'Street, Area, Building',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return 'Please enter your store address';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: DesignSystem.s20),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start, // Align fields to top to handle error messages gracefully
                   children: [
                     Expanded(
                       child: _buildInput(
@@ -228,6 +275,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         icon: Icons.pin_drop_outlined,
                         hint: 'e.g., 400001',
                         keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Required';
+                          if (!RegExp(r'^\d{6}$').hasMatch(value.trim())) return 'Invalid PIN';
+                          return null;
+                        },
                       ),
                     ),
                     const SizedBox(width: DesignSystem.s20),
@@ -237,6 +289,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         label: StaticEnglish.state,
                         icon: Icons.location_city_rounded,
                         hint: 'e.g., Maharashtra',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Required';
+                          return null;
+                        },
                       ),
                     ),
                   ],
@@ -260,21 +316,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                 const SizedBox(height: DesignSystem.s40),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
-                    GestureDetector(
-                      onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                      child: Text(
-                        StaticEnglish.loginInstead,
-                        style: TextStyle(color: brandOrange, fontWeight: FontWeight.w800),
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
+                      GestureDetector(
+                        onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                        child: Text(
+                          StaticEnglish.loginInstead,
+                          style: TextStyle(color: brandOrange, fontWeight: FontWeight.w800),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: DesignSystem.s48),
-              ],
+                  const SizedBox(height: DesignSystem.s48),
+                ],
+              ),
             ),
           ),
         ),
@@ -310,13 +370,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Widget _buildTailorTypeSelector(AppLocalizations? l10n) {
+  Widget _buildTailorTypeSelector() {
     final brandOrange = Theme.of(context).colorScheme.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n?.tailorType ?? 'TAILOR TYPE',
+          StaticEnglish.tailorType,
           style: TextStyle(
             color: DesignSystem.muted,
             fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5,
@@ -364,6 +424,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     bool obscure = false,
     VoidCallback? onToggle,
     TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     final brandOrange = Theme.of(context).colorScheme.primary;
 
@@ -378,10 +439,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
         ),
         const SizedBox(height: DesignSystem.s8),
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscure,
           keyboardType: keyboardType,
+          validator: validator,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
@@ -400,6 +462,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: brandOrange, width: 1.5),
             ),
+            errorBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: DesignSystem.error, width: 1.5),
+            ),
+            focusedErrorBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: DesignSystem.error, width: 2.0),
+            ),
+            errorStyle: const TextStyle(fontSize: 12, height: 1.2),
             contentPadding: const EdgeInsets.symmetric(vertical: DesignSystem.s12),
           ),
         ),
