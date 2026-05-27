@@ -12,7 +12,10 @@ import 'providers/order_provider.dart';
 import 'providers/worker_provider.dart';
 import 'providers/fabric_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/expense_provider.dart';
+import 'features/marketplace/providers/marketplace_provider.dart';
 import 'core/utils/app_refresh_controller.dart';
+import 'core/services/notification_service_helper.dart';
 
 import 'l10n/app_localizations.dart';
 export 'l10n/app_localizations.dart';
@@ -59,6 +62,11 @@ void main() async {
     );
     
     await LocalDatabase.init();
+    try {
+      await initLocalNotifications();
+    } catch (e) {
+      debugPrint("Failed to initialize local notifications: $e");
+    }
   } catch (e) {
     debugPrint("CRITICAL STARTUP ERROR: $e");
   }
@@ -82,6 +90,8 @@ class _MyAppState extends State<MyApp> {
   late final WorkerProvider _workerProvider;
   late final FabricProvider _fabricProvider;
   late final DashboardProvider _dashboardProvider;
+  late final ExpenseProvider _expenseProvider;
+  late final MarketplaceProvider _marketplaceProvider;
   late final AppRefreshController _refreshController;
 
   StreamSubscription<AuthState>? _authStateSubscription;
@@ -95,6 +105,8 @@ class _MyAppState extends State<MyApp> {
     _orderProvider = OrderProvider(fabricProvider: _fabricProvider);
     _workerProvider = WorkerProvider(orderProvider: _orderProvider);
     _dashboardProvider = DashboardProvider();
+    _expenseProvider = ExpenseProvider();
+    _marketplaceProvider = MarketplaceProvider();
     _refreshController = AppRefreshController();
     
     _customerProvider.fetchCustomers();
@@ -102,12 +114,31 @@ class _MyAppState extends State<MyApp> {
     _orderProvider.fetchOrders();
     _workerProvider.fetchWorkers();
     _fabricProvider.fetchFabrics();
+    _expenseProvider.fetchExpenses();
+    _marketplaceProvider.fetchPublicTemplates();
 
     _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
         debugPrint('Forgot Password Redirect: AuthChangeEvent.passwordRecovery received!');
         navigatorKey.currentState?.pushNamed('/update-password');
+      } else if (event == AuthChangeEvent.signedOut) {
+        _customerProvider.clearState();
+        _templateProvider.clearState();
+        _orderProvider.clearState();
+        _workerProvider.clearState();
+        _fabricProvider.clearState();
+        _dashboardProvider.clearState();
+        _expenseProvider.clearState();
+        _marketplaceProvider.clearState();
+      } else if (event == AuthChangeEvent.signedIn) {
+        _customerProvider.fetchCustomers();
+        _templateProvider.fetchMeasurements();
+        _orderProvider.fetchOrders();
+        _workerProvider.fetchWorkers();
+        _fabricProvider.fetchFabrics();
+        _expenseProvider.fetchExpenses();
+        _marketplaceProvider.fetchPublicTemplates();
       }
     });
   }
@@ -115,6 +146,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _authStateSubscription?.cancel();
+    _languageProvider.dispose();
+    _templateProvider.dispose();
+    _customerProvider.dispose();
+    _orderProvider.dispose();
+    _workerProvider.dispose();
+    _fabricProvider.dispose();
+    _dashboardProvider.dispose();
+    _expenseProvider.dispose();
+    _marketplaceProvider.dispose();
+    _refreshController.dispose();
     super.dispose();
   }
 
@@ -136,86 +177,93 @@ class _MyAppState extends State<MyApp> {
                   notifier: _fabricProvider,
                   child: DashboardProviderWrapper(
                     notifier: _dashboardProvider,
-                    child: Builder(
-                        builder: (context) {
-                          // Language support is postponed. Locale is locked to English.
-                          // See lib/providers/language_provider.dart for the feature flag.
-                          return MaterialApp(
-                          navigatorKey: navigatorKey,
-                          debugShowCheckedModeBanner: false,
-                          scaffoldMessengerKey: scaffoldMessengerKey,
-                          title: 'TailorsBook',
-                          routes: {
-                            '/update-password': (context) => const UpdatePasswordScreen(),
-                          },
-                          locale: const Locale('en'),
-                          supportedLocales: AppLocalizations.supportedLocales,
-                          localizationsDelegates: const [
-                            AppLocalizations.delegate,
-                            GlobalMaterialLocalizations.delegate,
-                            GlobalWidgetsLocalizations.delegate,
-                            GlobalCupertinoLocalizations.delegate,
-                          ],
-                        theme: ThemeData(
-                          colorScheme: ColorScheme.fromSeed(
-                            seedColor: DesignSystem.primaryContainer,
-                            primary: DesignSystem.primaryContainer,
-                            onPrimary: DesignSystem.surfaceContainerLowest,
-                            secondary: DesignSystem.secondary,
-                            surface: DesignSystem.surface,
-                          ),
-                          textTheme: GoogleFonts.manropeTextTheme(),
-                          scaffoldBackgroundColor: DesignSystem.surface,
-                          cardTheme: CardThemeData(
-                            color: DesignSystem.surfaceContainerLowest,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
-                              side: BorderSide(color: DesignSystem.outlineVariant),
-                            ),
-                          ),
-                          inputDecorationTheme: InputDecorationTheme(
-                            filled: true,
-                            fillColor: DesignSystem.surface,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
-                              borderSide: BorderSide(
-                                color: DesignSystem.primaryContainer.withValues(alpha: 0.5),
-                                width: 1.5,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: DesignSystem.s16,
-                              vertical: DesignSystem.s14,
-                            ),
-                          ),
-                          elevatedButtonTheme: ElevatedButtonThemeData(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: DesignSystem.primaryContainer,
-                              foregroundColor: DesignSystem.surfaceContainerLowest,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: DesignSystem.s14,
-                                horizontal: DesignSystem.s24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(DesignSystem.radiusBtn),
-                              ),
-                              textStyle: GoogleFonts.manrope(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                           ),
-                           useMaterial3: true,
+                    child: ExpenseProviderWrapper(
+                      notifier: _expenseProvider,
+                      child: MarketplaceProviderWrapper(
+                        notifier: _marketplaceProvider,
+                        child: Builder(
+                              builder: (context) {
+                                // Language support is postponed. Locale is locked to English.
+                                // See lib/providers/language_provider.dart for the feature flag.
+                                return MaterialApp(
+                                navigatorKey: navigatorKey,
+                                debugShowCheckedModeBanner: false,
+                                scaffoldMessengerKey: scaffoldMessengerKey,
+                                title: 'TailorsBook',
+                                routes: {
+                                  '/update-password': (context) => const UpdatePasswordScreen(),
+                                },
+                                locale: const Locale('en'),
+                                supportedLocales: AppLocalizations.supportedLocales,
+                                localizationsDelegates: const [
+                                  AppLocalizations.delegate,
+                                  GlobalMaterialLocalizations.delegate,
+                                  GlobalWidgetsLocalizations.delegate,
+                                  GlobalCupertinoLocalizations.delegate,
+                                ],
+                              theme: ThemeData(
+                                colorScheme: ColorScheme.fromSeed(
+                                  seedColor: DesignSystem.primaryContainer,
+                                  primary: DesignSystem.primaryContainer,
+                                  onPrimary: DesignSystem.surfaceContainerLowest,
+                                  secondary: DesignSystem.secondary,
+                                  surface: DesignSystem.surface,
+                                ),
+                                textTheme: GoogleFonts.manropeTextTheme(),
+                                scaffoldBackgroundColor: DesignSystem.surface,
+                                cardTheme: CardThemeData(
+                                  color: DesignSystem.surfaceContainerLowest,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
+                                    side: BorderSide(color: DesignSystem.outlineVariant),
+                                  ),
+                                ),
+                                inputDecorationTheme: InputDecorationTheme(
+                                  filled: true,
+                                  fillColor: DesignSystem.surface,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
+                                    borderSide: BorderSide(
+                                      color: DesignSystem.primaryContainer.withOpacity(0.5),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: DesignSystem.s16,
+                                    vertical: DesignSystem.s14,
+                                  ),
+                                ),
+                                elevatedButtonTheme: ElevatedButtonThemeData(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: DesignSystem.primaryContainer,
+                                    foregroundColor: DesignSystem.surfaceContainerLowest,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: DesignSystem.s14,
+                                      horizontal: DesignSystem.s24,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(DesignSystem.radiusBtn),
+                                    ),
+                                    textStyle: GoogleFonts.manrope(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                 ),
+                                 useMaterial3: true,
+                               ),
+                               home: const SplashScreen(),
+                             );
+                           },
                          ),
-                         home: const SplashScreen(),
-                       );
-                     },
+                       ),
+                     ),
                    ),
                  ),
                ),
@@ -223,7 +271,6 @@ class _MyAppState extends State<MyApp> {
            ),
          ),
        ),
-     ),
     );
   }
 }

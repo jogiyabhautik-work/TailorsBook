@@ -15,6 +15,7 @@ import '../profile_tab/invoice_customization_screen.dart';
 import '../profile_tab/backup_restore_screen.dart';
 import '../../core/utils/design_system.dart';
 import '../settings/fabric_inventory_screen.dart';
+import '../../features/expenses/screens/expense_dashboard_screen.dart';
 import '../../core/services/update_service.dart';
 import '../../models/app_update_info.dart';
 import '../../core/utils/version_utils.dart';
@@ -442,6 +443,13 @@ class _ProfileTabState extends State<ProfileTab> {
                           'Fabric Inventory', 
                           'Manage your shop fabrics',
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FabricInventoryScreen()))
+                        ),
+                        const Divider(height: 1, indent: 64),
+                        _buildSettingsTile(
+                          Icons.receipt_long_rounded, 
+                          'Expense Tracking', 
+                          'Manage your shop expenses',
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpenseDashboardScreen()))
                         ),
                       ],
                     ),

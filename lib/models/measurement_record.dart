@@ -86,7 +86,7 @@ class MeasurementRecord extends HiveObject {
     };
   }
 
-  factory MeasurementRecord.fromJson(Map<String, dynamic> map) {
+  factory MeasurementRecord.fromJson(Map<dynamic, dynamic> map) {
     final rawValues = map['values'] as Map<dynamic, dynamic>? ?? {};
     final parsedValues = rawValues.map((key, value) {
       double parsedValue;

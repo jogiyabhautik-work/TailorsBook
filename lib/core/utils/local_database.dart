@@ -67,6 +67,7 @@ class LocalDatabase {
     if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(MeasurementFieldAdapter());
     if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(ProductTemplateAdapter());
     if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(MeasurementRecordAdapter());
+    if (!Hive.isAdapterRegistered(11)) Hive.registerAdapter(FieldTypeAdapter());
     if (!Hive.isAdapterRegistered(12)) Hive.registerAdapter(ShopFabricModelAdapter());
     if (!Hive.isAdapterRegistered(13)) Hive.registerAdapter(CustomerFabricModelAdapter());
     if (!Hive.isAdapterRegistered(14)) Hive.registerAdapter(OrderItemFabricModelAdapter());

@@ -154,8 +154,8 @@ class TemplateProvider extends ChangeNotifier {
       _cacheVersion++;
       _invalidateMeasurementCaches();
       
-    } catch (e) {
-      debugPrint('TemplateProvider Error: $e');
+    } catch (e, stackTrace) {
+      debugPrint('TemplateProvider Error: $e\n$stackTrace');
       final handled = classifySupabaseError(e);
       showGlobalSnackBar(handled.userMessage, isError: true);
     } finally {
@@ -239,7 +239,7 @@ class TemplateProvider extends ChangeNotifier {
 
     try {
       final user = _supabase.auth.currentUser;
-      final finalTemplate = template.copyWith(id: template.id.isEmpty ? null : template.id);
+      final finalTemplate = template.copyWith(id: template.id.isEmpty ? const Uuid().v4() : template.id);
       
       final data = finalTemplate.toMap();
       if (user != null) data['tailor_id'] = user.id;

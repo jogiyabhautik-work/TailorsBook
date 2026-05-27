@@ -30,7 +30,6 @@ class DesignSystem {
   static const Color inactiveIcon = Color(0xFF666666);
   static const Color border = outlineVariant;
   static const Color success = tertiaryContainer;
-
   // ── Spacing System (4px base — Stitch grid) ──────────────────────────────
   static const double gridMargin = 20;
   static const double gridGutter = 12;
@@ -78,7 +77,7 @@ class DesignSystem {
   // ── Card Elevation / Shadow (Stitch soft shadows) ────────────────────────
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
+          color: Colors.black.withOpacity(0.04),
           blurRadius: 10,
           offset: const Offset(0, 4),
         ),
@@ -86,7 +85,7 @@ class DesignSystem {
 
   static List<BoxShadow> get elevatedShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
+          color: Colors.black.withOpacity(0.06),
           blurRadius: 20,
           offset: const Offset(0, 8),
         ),
@@ -94,7 +93,7 @@ class DesignSystem {
 
   static List<BoxShadow> get softShadow => [
         BoxShadow(
-          color: primaryContainer.withValues(alpha: 0.08),
+          color: primaryContainer.withOpacity(0.08),
           blurRadius: 24,
           offset: const Offset(0, 8),
         ),
@@ -102,12 +101,12 @@ class DesignSystem {
 
   static List<BoxShadow> get pillShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
+          color: Colors.black.withOpacity(0.08),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
+          color: Colors.black.withOpacity(0.04),
           blurRadius: 8,
           offset: const Offset(0, 2),
         ),
@@ -115,7 +114,7 @@ class DesignSystem {
 
   static List<BoxShadow> get searchShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.03),
+          color: Colors.black.withOpacity(0.03),
           blurRadius: 6,
           offset: const Offset(0, 2),
         ),
@@ -203,14 +202,14 @@ class DesignSystem {
       );
 
   static BoxDecoration get glassCard => BoxDecoration(
-        color: surfaceContainerLowest.withValues(alpha: 0.8),
+        color: surfaceContainerLowest.withOpacity(0.8),
         borderRadius: BorderRadius.circular(radiusXl),
-        border: Border.all(color: outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(color: outlineVariant.withOpacity(0.5)),
         boxShadow: cardShadow,
       );
 
   static BoxDecoration badgeDecoration(Color color) => BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(radiusSm),
       );
 
@@ -248,7 +247,7 @@ class DesignSystem {
         color: surfaceContainerLowest,
         borderRadius: BorderRadius.circular(radiusFull),
         boxShadow: pillShadow,
-        border: Border.all(color: outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(color: outlineVariant.withOpacity(0.3)),
       );
 
   // ── Button Styles ────────────────────────────────────────────────────────
@@ -287,7 +286,7 @@ class DesignSystem {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusLg),
         ),
-        shadowColor: primaryContainer.withValues(alpha: 0.3),
+        shadowColor: primaryContainer.withOpacity(0.3),
       );
 
   // ── Input Decoration ─────────────────────────────────────────────────────
@@ -325,7 +324,7 @@ class DesignSystem {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusBtn),
-          borderSide: BorderSide(color: error.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: error.withOpacity(0.5)),
         ),
         hintStyle: GoogleFonts.manrope(
           fontSize: 13,
@@ -405,4 +404,11 @@ class DesignSystem {
   static double bottomNavSafePadding(BuildContext context) {
     return navBarSafeBottom(context);
   }
+}
+
+class AppColors {
+  static const Color primary = DesignSystem.primary;
+  static const Color primaryDark = DesignSystem.charcoal; // Assuming primaryDark usage matches charcoal or dark orange
+  static const Color background = DesignSystem.surface;
+  static const Color textPrimary = DesignSystem.charcoal;
 }

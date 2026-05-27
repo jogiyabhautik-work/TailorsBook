@@ -4,6 +4,7 @@ import '../../widgets/common/provider_wrappers.dart';
 import '../../models/measurement_template.dart';
 import '../../main.dart';
 import 'package:tailorsbook/core/utils/design_system.dart';
+import '../../features/marketplace/screens/template_marketplace_screen.dart';
 
 class TemplateManagementScreen extends StatefulWidget {
   const TemplateManagementScreen({super.key});
@@ -73,6 +74,18 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         foregroundColor: DesignSystem.charcoal,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.storefront_outlined),
+            tooltip: 'Marketplace',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TemplateMarketplaceScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -170,7 +183,8 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
                   category: selectedCategory,
                   fields: [],
                 );
-                await TemplateProviderWrapper.of(context).addTemplate(template);
+                final res = await TemplateProviderWrapper.of(context, listen: false).addTemplate(template);
+                if (res == null) return;
                 if (!context.mounted) return;
                 Navigator.pop(context);
               },
@@ -205,7 +219,7 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await TemplateProviderWrapper.of(context).deleteTemplate(template.id);
+              await TemplateProviderWrapper.of(context, listen: false).deleteTemplate(template.id);
               if (!context.mounted) return;
               Navigator.pop(context);
             },
@@ -238,7 +252,7 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFEEEEEE)),
         boxShadow: [
-          BoxShadow(color: DesignSystem.charcoal.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: DesignSystem.charcoal.withOpacity(0.02), blurRadius: 20, offset: const Offset(0, 8)),
         ],
       ),
       child: Column(
@@ -261,44 +275,39 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFF1F1F1)),
         boxShadow: [
-          BoxShadow(color: DesignSystem.charcoal.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: DesignSystem.charcoal.withOpacity(0.02), blurRadius: 20, offset: const Offset(0, 8)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _categoryColor(template.category).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _categoryColor(template.category).withValues(alpha: 0.2)),
-                    ),
-                    child: Text(
-                      template.category.name.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10, 
-                        fontWeight: FontWeight.w900, 
-                        color: _categoryColor(template.category),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _categoryColor(template.category).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _categoryColor(template.category).withOpacity(0.2)),
+                ),
+                child: Text(
+                  template.category.name.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10, 
+                    fontWeight: FontWeight.w900, 
+                    color: _categoryColor(template.category),
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      template.name,
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: brandBlack, letterSpacing: -0.5),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  template.name,
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: brandBlack, letterSpacing: -0.5),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
               _buildPopupMenu(template, isSystem),
             ],
@@ -417,7 +426,8 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await TemplateProviderWrapper.of(context).cloneTemplate(template, controller.text);
+              final res = await TemplateProviderWrapper.of(context, listen: false).cloneTemplate(template, controller.text);
+              if (res == null) return;
               if (!context.mounted) return;
               Navigator.pop(context);
             },
@@ -441,10 +451,10 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? brandOrange.withValues(alpha: 0.1) : DesignSystem.muted.withValues(alpha: 0.05),
+          color: isSelected ? brandOrange.withOpacity(0.1) : DesignSystem.muted.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? brandOrange : DesignSystem.muted.withValues(alpha: 0.2),
+            color: isSelected ? brandOrange : DesignSystem.muted.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -493,7 +503,7 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await TemplateProviderWrapper.of(context).archiveTemplate(template.id);
+              await TemplateProviderWrapper.of(context, listen: false).archiveTemplate(template.id);
               if (!context.mounted) return;
               Navigator.pop(context);
             },
@@ -527,7 +537,7 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await TemplateProviderWrapper.of(context).unarchiveTemplate(template.id);
+              await TemplateProviderWrapper.of(context, listen: false).unarchiveTemplate(template.id);
               if (!context.mounted) return;
               Navigator.pop(context);
             },
@@ -587,7 +597,7 @@ class _TemplateEditorScreenState extends State<TemplateEditorScreen> {
                  return;
               }
               setState(() => _isSaving = true);
-              final success = await TemplateProviderWrapper.of(context).updateTemplate(_editingTemplate);
+              final success = await TemplateProviderWrapper.of(context, listen: false).updateTemplate(_editingTemplate);
               if (!context.mounted) return;
               setState(() => _isSaving = false);
               if (success) {

@@ -235,10 +235,14 @@ class OrderProvider extends ChangeNotifier {
 
       final dueTodayList = dueTodayOrders();
       if (dueTodayList.isNotEmpty) {
-        await showLocalOrderNotification(
-          title: 'Delivery reminder',
-          body: '${dueTodayList.length} order(s) are due today.',
-        );
+        try {
+          await showLocalOrderNotification(
+            title: 'Delivery reminder',
+            body: '${dueTodayList.length} order(s) are due today.',
+          );
+        } catch (notificationError) {
+          debugPrint('Failed to show due-today local notification: $notificationError');
+        }
       }
 
       subscribeToRealtime();

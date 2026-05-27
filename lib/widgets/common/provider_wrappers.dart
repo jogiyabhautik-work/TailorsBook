@@ -6,6 +6,9 @@ import '../../providers/order_provider.dart';
 import '../../providers/worker_provider.dart';
 import '../../providers/fabric_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/expense_provider.dart';
+import '../../features/marketplace/providers/marketplace_provider.dart';
+
 import '../../core/utils/app_refresh_controller.dart';
 
 class AppRefreshControllerWrapper extends InheritedNotifier<AppRefreshController> {
@@ -95,3 +98,26 @@ class DashboardProviderWrapper extends InheritedNotifier<DashboardProvider> {
     }
   }
 }
+
+class ExpenseProviderWrapper extends InheritedNotifier<ExpenseProvider> {
+  const ExpenseProviderWrapper({super.key, required super.notifier, required super.child});
+  static ExpenseProvider of(BuildContext context, {bool listen = true}) {
+    if (listen) {
+      return context.dependOnInheritedWidgetOfExactType<ExpenseProviderWrapper>()!.notifier!;
+    } else {
+      return context.getInheritedWidgetOfExactType<ExpenseProviderWrapper>()!.notifier!;
+    }
+  }
+}
+
+class MarketplaceProviderWrapper extends InheritedNotifier<MarketplaceProvider> {
+  const MarketplaceProviderWrapper({super.key, required super.notifier, required super.child});
+  static MarketplaceProvider of(BuildContext context, {bool listen = true}) {
+    if (listen) {
+      return context.dependOnInheritedWidgetOfExactType<MarketplaceProviderWrapper>()!.notifier!;
+    } else {
+      return context.getInheritedWidgetOfExactType<MarketplaceProviderWrapper>()!.notifier!;
+    }
+  }
+}
+

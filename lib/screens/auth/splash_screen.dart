@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../main.dart';
 import '../../core/utils/design_system.dart';
+import '../../core/services/update_service.dart';
+import '../../core/utils/version_utils.dart';
+import '../../models/app_update_info.dart';
 import 'login_screen.dart';
 import '../home/home_page.dart';
+import '../update/update_required_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,9 +36,41 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _handleNavigation() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    final minimumDelay = Future.delayed(const Duration(milliseconds: 2000));
+    bool isUpdateRequired = false;
+    AppUpdateInfo? updateInfo;
+
+    try {
+      final info = await UpdateService().fetchUpdateInfo();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      final minVersion = info.minimumSupportedVersion;
+      
+      final cmpMin = VersionUtils.compare(currentVersion, minVersion);
+      final cmpLatest = VersionUtils.compare(currentVersion, info.latestVersion);
+      
+      if (cmpMin < 0 || (info.updateRequired && cmpLatest < 0)) {
+        isUpdateRequired = true;
+        updateInfo = info;
+      }
+    } catch (e) {
+      debugPrint('Splash update check error: $e');
+    }
+
+    await minimumDelay;
+    
     if (!context.mounted) return;
     
+    if (isUpdateRequired && updateInfo != null) {
+      Navigator.of(context).pushReplacement(PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => UpdateRequiredScreen(updateInfo: updateInfo!),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) => 
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 600),
+      ));
+      return;
+    }
+
     final session = supabase.auth.currentSession;
     final Widget nextScreen = session != null
         ? const MyHomePage(title: 'TailorsBook')

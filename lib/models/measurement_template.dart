@@ -49,13 +49,13 @@ class MeasurementField extends HiveObject {
     };
   }
 
-  factory MeasurementField.fromMap(Map<String, dynamic> map) {
+  factory MeasurementField.fromMap(Map<dynamic, dynamic> map) {
     return MeasurementField(
       id: map['id']?.toString() ?? '',
       label: map['label']?.toString() ?? '',
       unit: map['unit']?.toString() ?? 'inch',
       type: FieldType.values.firstWhere(
-        (e) => e.name == map['type'],
+        (e) => e.name == map['type']?.toString(),
         orElse: () => FieldType.number,
       ),
     );
@@ -111,18 +111,18 @@ class ProductTemplate extends HiveObject {
     };
   }
 
-  factory ProductTemplate.fromMap(Map<String, dynamic> map) {
+  factory ProductTemplate.fromMap(Map<dynamic, dynamic> map) {
     return ProductTemplate(
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? 'Unknown Template',
       category: TemplateCategory.values.firstWhere(
-        (e) => e.name == map['category'],
+        (e) => e.name == map['category']?.toString(),
         orElse: () => TemplateCategory.custom,
       ),
       isSystemTemplate: false,
       tailorId: map['tailor_id']?.toString(),
       fields: ((map['measurements'] ?? map['fields']) as List?)
-              ?.map((f) => MeasurementField.fromMap(f as Map<String, dynamic>))
+              ?.map((f) => MeasurementField.fromMap(f as Map))
               .toList() ??
           [],
     );
