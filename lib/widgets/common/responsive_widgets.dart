@@ -448,7 +448,6 @@ class KeyboardSafeBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     final keyboardHeight = media.viewInsets.bottom;
-    final bottomSafePadding = keyboardHeight > 0 ? keyboardHeight : media.padding.bottom;
 
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardHeight),
