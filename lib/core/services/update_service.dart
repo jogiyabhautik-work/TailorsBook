@@ -19,7 +19,7 @@ class UpdateService {
       final client = Supabase.instance.client;
       try {
         // Try to read the latest config row. Order by updated_at to prefer newest.
-        final res = await client.from('app_update').select().order('updated_at', ascending: false).limit(1).maybeSingle();
+        final res = await client.from('in_app_updater').select().order('updated_at', ascending: false).limit(1).maybeSingle();
         if (res != null) {
           return AppUpdateInfo.fromMap(Map<String, dynamic>.from(res));
         }
