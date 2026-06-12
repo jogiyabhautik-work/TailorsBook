@@ -338,7 +338,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
-          ),
         ),
       ),
     );

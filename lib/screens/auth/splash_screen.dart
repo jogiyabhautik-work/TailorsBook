@@ -18,7 +18,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
 
@@ -30,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
     );
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    
+
     _controller.forward();
     _handleNavigation();
   }
@@ -45,10 +46,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       final minVersion = info.minimumSupportedVersion;
-      
+
       final cmpMin = VersionUtils.compare(currentVersion, minVersion);
-      final cmpLatest = VersionUtils.compare(currentVersion, info.latestVersion);
-      
+      final cmpLatest = VersionUtils.compare(
+        currentVersion,
+        info.latestVersion,
+      );
+
       if (cmpMin < 0 || (info.updateRequired && cmpLatest < 0)) {
         isUpdateRequired = true;
         updateInfo = info;
@@ -58,16 +62,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
 
     await minimumDelay;
-    
+
     if (!context.mounted) return;
-    
+
     if (isUpdateRequired && updateInfo != null) {
-      Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => UpdateRequiredScreen(updateInfo: updateInfo!),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) => 
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 600),
-      ));
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              UpdateRequiredScreen(updateInfo: updateInfo!),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
       return;
     }
 
@@ -75,13 +82,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final Widget nextScreen = session != null
         ? const MyHomePage(title: 'TailorsBook')
         : const LoginScreen();
-        
-    Navigator.of(context).pushReplacement(PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) => 
-          FadeTransition(opacity: animation, child: child),
-      transitionDuration: const Duration(milliseconds: 600),
-    ));
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 600),
+      ),
+    );
   }
 
   @override
@@ -109,17 +118,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     height: 250,
                     fit: BoxFit.contain,
                   ),
-                
+
                   const SizedBox(height: 8),
-                    Text(
-                      'Premium Shop Management',
-                      style: GoogleFonts.inter(
-                        color: DesignSystem.muted,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.0,
-                      ),
+                  Text(
+                    'Premium Shop Management',
+                    style: GoogleFonts.inter(
+                      color: DesignSystem.muted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.0,
                     ),
+                  ),
                 ],
               ),
             ),
