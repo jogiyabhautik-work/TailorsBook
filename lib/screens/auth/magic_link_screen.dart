@@ -180,97 +180,98 @@ class _MagicLinkScreenState extends State<MagicLinkScreen>
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
-          children: [
-            // ── Premium Dark Header ──────────────────────────────────────────
-            Container(
-              height: size.height * 0.36,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1C1C1C), Color(0xFF2C3E50)],
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(DesignSystem.radiusXxl),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: -40, right: -40,
-                    child: CircleAvatar(radius: 80, backgroundColor: brandOrange.withValues(alpha: 0.07)),
+            children: [
+              // ── Premium Dark Header ──────────────────────────────────────────
+              Container(
+                height: size.height * 0.36,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1C1C1C), Color(0xFF2C3E50)],
                   ),
-                  Positioned(
-                    bottom: -20, left: -20,
-                    child: CircleAvatar(radius: 50, backgroundColor: brandOrange.withValues(alpha: 0.04)),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(DesignSystem.radiusXxl),
                   ),
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                            onPressed: () => Navigator.pop(context),
-                            padding: EdgeInsets.zero,
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.all(DesignSystem.s16),
-                            decoration: BoxDecoration(
-                              color: brandOrange.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
-                              border: Border.all(color: brandOrange.withValues(alpha: 0.25)),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: -40, right: -40,
+                      child: CircleAvatar(radius: 80, backgroundColor: brandOrange.withValues(alpha: 0.07)),
+                    ),
+                    Positioned(
+                      bottom: -20, left: -20,
+                      child: CircleAvatar(radius: 50, backgroundColor: brandOrange.withValues(alpha: 0.04)),
+                    ),
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                              onPressed: () => Navigator.pop(context),
+                              padding: EdgeInsets.zero,
                             ),
-                            child: Icon(Icons.auto_awesome_rounded, color: brandOrange, size: 28),
-                          ),
-                          const SizedBox(height: DesignSystem.s20),
-                          Text(
-                            _otpSent ? 'Enter the\nOTP Code' : 'Magic\nLink Login',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 34,
-                              fontWeight: FontWeight.w800,
-                              height: 1.1,
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.all(DesignSystem.s16),
+                              decoration: BoxDecoration(
+                                color: brandOrange.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
+                                border: Border.all(color: brandOrange.withValues(alpha: 0.25)),
+                              ),
+                              child: Icon(Icons.auto_awesome_rounded, color: brandOrange, size: 28),
                             ),
-                          ),
-                          const SizedBox(height: DesignSystem.s12),
-                          Text(
-                            _otpSent
-                                ? 'We sent a 6-digit code to\n${_emailController.text.trim()}'
-                                : 'Login instantly — no password needed.\nWe\'ll send you a one-time code.',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 14,
-                              height: 1.5,
+                            const SizedBox(height: DesignSystem.s20),
+                            Text(
+                              _otpSent ? 'Enter the\nOTP Code' : 'Magic\nLink Login',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: DesignSystem.s24),
-                        ],
+                            const SizedBox(height: DesignSystem.s12),
+                            Text(
+                              _otpSent
+                                  ? 'We sent a 6-digit code to\n${_emailController.text.trim()}'
+                                  : 'Login instantly — no password needed.\nWe\'ll send you a one-time code.',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: DesignSystem.s24),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Body Form ───────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(DesignSystem.s28),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: _otpSent
-                      ? _buildOtpStep(brandOrange)
-                      : _buildEmailStep(brandOrange),
+                  ],
                 ),
               ),
-            ),
-          ],
+
+              // ── Body Form ───────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(DesignSystem.s28),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: SlideTransition(
+                    position: _slideAnim,
+                    child: _otpSent
+                        ? _buildOtpStep(brandOrange)
+                        : _buildEmailStep(brandOrange),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

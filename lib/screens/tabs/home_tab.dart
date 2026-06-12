@@ -55,6 +55,22 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _searchQuery = query);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final templateProvider = TemplateProviderWrapper.of(context);
@@ -198,6 +214,11 @@ class _HomeTabState extends State<HomeTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    AppSearchBar(
+                      onChanged: _onSearchChanged,
+                      hintText: 'Search order token or client...',
+                    ),
+                    const SizedBox(height: 24),
                     SectionHeader(title: 'BUSINESS OVERVIEW'),
                     SizedBox(height: R.gap(context)),
                     _buildBentoGrid(context, activeOrders.length, overdueOrders.length, totalRevenue, completionRate),
@@ -250,7 +271,9 @@ class _HomeTabState extends State<HomeTab> {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 ConstrainedContent(
-                  child: _buildRecentOrdersList(orderProvider, customerProvider),
+                  child: _searchQuery.isEmpty
+                      ? _buildRecentOrdersList(orderProvider, customerProvider)
+                      : _buildSearchResults(orderProvider, customerProvider),
                 ),
                 SizedBox(height: effectiveBottomPadding(context) + 16),
               ]),
@@ -441,5 +464,50 @@ class _HomeTabState extends State<HomeTab> {
       case 'cancelled': return 'CANCELLED';
       default: return status.toUpperCase();
     }
+  }
+
+  Widget _buildSearchResults(OrderProvider orderProvider, CustomerProvider customerProvider) {
+    final query = _searchQuery.toLowerCase();
+    final results = orderProvider.orders.where((o) {
+      final customer = customerProvider.customers.firstWhere(
+        (c) => c.id == o.customerId,
+        orElse: () => Customer(id: '', name: '', phone: '', address: ''),
+      );
+      return o.orderToken.toLowerCase().contains(query) ||
+             customer.name.toLowerCase().contains(query) ||
+             customer.phone.contains(query);
+    }).toList();
+
+    if (results.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.search_off_rounded, size: 48, color: DesignSystem.muted),
+              const SizedBox(height: 12),
+              Text('No orders found for "$_searchQuery"', style: TextStyle(color: DesignSystem.muted, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text('SEARCH RESULTS (${results.length})', style: DesignSystem.sectionTitle),
+        ),
+        ...results.map((o) {
+          final customer = customerProvider.customers.firstWhere(
+            (c) => c.id == o.customerId,
+            orElse: () => Customer(id: '', name: 'Unknown', phone: '', address: ''),
+          );
+          return _recentOrderCard(o, customer);
+        }),
+      ],
+    );
   }
 }
