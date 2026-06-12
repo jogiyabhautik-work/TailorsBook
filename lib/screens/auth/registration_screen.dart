@@ -153,187 +153,188 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedContent(
-          maxWidth: 600,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s28),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: DesignSystem.s10),
-                Container(
-                  padding: const EdgeInsets.all(DesignSystem.s12),
-                  decoration: BoxDecoration(
-                    color: DesignSystem.creamBg,
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
-                  ),
-                  child: Image.asset(
-                    'assets/icons/TailorsBook_icon_square.png',
-                    height: 48, width: 48, fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                Text(
-                  StaticEnglish.createProfile,
-                  style: DesignSystem.pageTitle.copyWith(fontSize: 30),
-                ),
-                const SizedBox(height: DesignSystem.s12),
-                Text(
-                  StaticEnglish.registerSubtitle,
-                  style: TextStyle(color: DesignSystem.muted, fontSize: 15),
-                ),
-                const SizedBox(height: DesignSystem.s36),
-
-                _buildSectionHeader(StaticEnglish.accountBasics),
-                _buildInput(
-                  controller: _nameController,
-                  label: StaticEnglish.fullName,
-                  icon: Icons.person_outline_rounded,
-                  hint: 'e.g., Ahmed Khan',
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Please enter your full name';
-                    if (value.trim().length < 3) return 'Name must be at least 3 characters';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                _buildInput(
-                  controller: _phoneController,
-                  label: StaticEnglish.phone,
-                  icon: Icons.phone_android_rounded,
-                  hint: 'e.g., 9876543210',
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Please enter your phone number';
-                    if (!RegExp(r'^\d{10}$').hasMatch(value.trim())) return 'Please enter a valid 10-digit phone number';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                _buildInput(
-                  controller: _emailController,
-                  label: StaticEnglish.shopEmail,
-                  icon: Icons.alternate_email_rounded,
-                  hint: 'ahmed@royaltailors.com',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Please enter your email';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) return 'Please enter a valid email address';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                _buildInput(
-                  controller: _passwordController,
-                  label: StaticEnglish.choosePassword,
-                  icon: Icons.lock_open_rounded,
-                  hint: '••••••••',
-                  isPassword: true,
-                  obscure: _obscureText,
-                  onToggle: () => setState(() => _obscureText = !_obscureText),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please choose a password';
-                    if (value.length < 6) return 'Password must be at least 6 characters';
-                    return null;
-                  },
-                ),
-
-                _buildSectionHeader(StaticEnglish.storeDetails),
-                _buildInput(
-                  controller: _shopController,
-                  label: 'SHOP NAME',
-                  icon: Icons.storefront_rounded,
-                  hint: 'e.g., Royal Tailors & Co.',
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Please enter your shop name';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                _buildTailorTypeSelector(),
-
-                _buildSectionHeader(StaticEnglish.location),
-                _buildInput(
-                  controller: _addressController,
-                  label: StaticEnglish.storeAddress,
-                  icon: Icons.map_outlined,
-                  hint: 'Street, Area, Building',
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Please enter your store address';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: DesignSystem.s20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Align fields to top to handle error messages gracefully
+            maxWidth: 600,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s28),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _buildInput(
-                        controller: _pinCodeController,
-                        label: StaticEnglish.pinCode,
-                        icon: Icons.pin_drop_outlined,
-                        hint: 'e.g., 400001',
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) return 'Required';
-                          if (!RegExp(r'^\d{6}$').hasMatch(value.trim())) return 'Invalid PIN';
-                          return null;
-                        },
+                    const SizedBox(height: DesignSystem.s10),
+                    Container(
+                      padding: const EdgeInsets.all(DesignSystem.s12),
+                      decoration: BoxDecoration(
+                        color: DesignSystem.creamBg,
+                        borderRadius: BorderRadius.circular(DesignSystem.radiusMd),
+                      ),
+                      child: Image.asset(
+                        'assets/icons/TailorsBook_icon_square.png',
+                        height: 48, width: 48, fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(width: DesignSystem.s20),
-                    Expanded(
-                      child: _buildInput(
-                        controller: _stateController,
-                        label: StaticEnglish.state,
-                        icon: Icons.location_city_rounded,
-                        hint: 'e.g., Maharashtra',
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) return 'Required';
-                          return null;
-                        },
+                    const SizedBox(height: DesignSystem.s20),
+                    Text(
+                      StaticEnglish.createProfile,
+                      style: DesignSystem.pageTitle.copyWith(fontSize: 30),
+                    ),
+                    const SizedBox(height: DesignSystem.s12),
+                    Text(
+                      StaticEnglish.registerSubtitle,
+                      style: TextStyle(color: DesignSystem.muted, fontSize: 15),
+                    ),
+                    const SizedBox(height: DesignSystem.s36),
+
+                    _buildSectionHeader(StaticEnglish.accountBasics),
+                    _buildInput(
+                      controller: _nameController,
+                      label: StaticEnglish.fullName,
+                      icon: Icons.person_outline_rounded,
+                      hint: 'e.g., Ahmed Khan',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Please enter your full name';
+                        if (value.trim().length < 3) return 'Name must be at least 3 characters';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: DesignSystem.s20),
+                    _buildInput(
+                      controller: _phoneController,
+                      label: StaticEnglish.phone,
+                      icon: Icons.phone_android_rounded,
+                      hint: 'e.g., 9876543210',
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Please enter your phone number';
+                        if (!RegExp(r'^\d{10}$').hasMatch(value.trim())) return 'Please enter a valid 10-digit phone number';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: DesignSystem.s20),
+                    _buildInput(
+                      controller: _emailController,
+                      label: StaticEnglish.shopEmail,
+                      icon: Icons.alternate_email_rounded,
+                      hint: 'ahmed@royaltailors.com',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Please enter your email';
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) return 'Please enter a valid email address';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: DesignSystem.s20),
+                    _buildInput(
+                      controller: _passwordController,
+                      label: StaticEnglish.choosePassword,
+                      icon: Icons.lock_open_rounded,
+                      hint: '••••••••',
+                      isPassword: true,
+                      obscure: _obscureText,
+                      onToggle: () => setState(() => _obscureText = !_obscureText),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Please choose a password';
+                        if (value.length < 6) return 'Password must be at least 6 characters';
+                        return null;
+                      },
+                    ),
+
+                    _buildSectionHeader(StaticEnglish.storeDetails),
+                    _buildInput(
+                      controller: _shopController,
+                      label: 'SHOP NAME',
+                      icon: Icons.storefront_rounded,
+                      hint: 'e.g., Royal Tailors & Co.',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Please enter your shop name';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: DesignSystem.s20),
+                    _buildTailorTypeSelector(),
+
+                    _buildSectionHeader(StaticEnglish.location),
+                    _buildInput(
+                      controller: _addressController,
+                      label: StaticEnglish.storeAddress,
+                      icon: Icons.map_outlined,
+                      hint: 'Street, Area, Building',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Please enter your store address';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: DesignSystem.s20),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start, // Align fields to top to handle error messages gracefully
+                      children: [
+                        Expanded(
+                          child: _buildInput(
+                            controller: _pinCodeController,
+                            label: StaticEnglish.pinCode,
+                            icon: Icons.pin_drop_outlined,
+                            hint: 'e.g., 400001',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) return 'Required';
+                              if (!RegExp(r'^\d{6}$').hasMatch(value.trim())) return 'Invalid PIN';
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: DesignSystem.s20),
+                        Expanded(
+                          child: _buildInput(
+                            controller: _stateController,
+                            label: StaticEnglish.state,
+                            icon: Icons.location_city_rounded,
+                            hint: 'e.g., Maharashtra',
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) return 'Required';
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: DesignSystem.s40),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: DesignSystem.s56,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _signUp,
+                        style: DesignSystem.primaryButton(DesignSystem.charcoal).copyWith(
+                          shadowColor: WidgetStatePropertyAll(DesignSystem.charcoal.withValues(alpha: 0.12)),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: DesignSystem.white, strokeWidth: 2))
+                            : Text(StaticEnglish.getStarted, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
                       ),
                     ),
+
+                    const SizedBox(height: DesignSystem.s40),
+
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
+                          GestureDetector(
+                            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                            child: Text(
+                              StaticEnglish.loginInstead,
+                              style: TextStyle(color: brandOrange, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: DesignSystem.s48),
                   ],
                 ),
-
-                const SizedBox(height: DesignSystem.s40),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: DesignSystem.s56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signUp,
-                    style: DesignSystem.primaryButton(DesignSystem.charcoal).copyWith(
-                      shadowColor: WidgetStatePropertyAll(DesignSystem.charcoal.withValues(alpha: 0.12)),
-                    ),
-                    child: _isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: DesignSystem.white, strokeWidth: 2))
-                      : Text(StaticEnglish.getStarted, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
-                  ),
-                ),
-
-                const SizedBox(height: DesignSystem.s40),
-
-                Center(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
-                      GestureDetector(
-                        onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                        child: Text(
-                          StaticEnglish.loginInstead,
-                          style: TextStyle(color: brandOrange, fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                  const SizedBox(height: DesignSystem.s48),
-                ],
               ),
             ),
           ),

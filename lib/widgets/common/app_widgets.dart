@@ -615,7 +615,9 @@ class SectionHeader extends StatelessWidget {
           ],
           Text(title, style: DesignSystem.sectionTitle),
           const Spacer(),
-          ?trailing,
+          if (trailing != null) ...[
+            trailing!,
+          ],
         ],
       ),
     );

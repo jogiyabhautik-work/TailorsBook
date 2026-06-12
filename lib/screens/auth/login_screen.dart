@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/common/responsive_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 import '../../core/utils/responsive.dart';
@@ -94,78 +93,76 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
-          children: [
-            // Top Header/Art
-            Container(
-              height: size.height * 0.38,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: brandBlack,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(DesignSystem.radiusXxl),
-                ),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [brandBlack, const Color(0xFF2C3E50)],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: -40, right: -40,
-                    child: CircleAvatar(radius: 80, backgroundColor: brandOrange.withValues(alpha: 0.08)),
+            children: [
+              // Top Header/Art
+              Container(
+                height: size.height * 0.38,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: brandBlack,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(DesignSystem.radiusXxl),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(DesignSystem.s12),
-                          decoration: BoxDecoration(
-                            color: DesignSystem.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
-                          ),
-                          child: Image.asset(
-                            'assets/icons/TailorsBook_icon_square.png',
-                            height: 56, width: 56,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: DesignSystem.s24),
-                        Text(
-                          // Force English text from StaticEnglish constants
-                          // (do not localize login screen)
-                          StaticEnglish.welcomeBack,
-                          style: const TextStyle(
-                            color: DesignSystem.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.w800,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: DesignSystem.s12),
-                        Text(
-                          StaticEnglish.loginSubtitle,
-                          style: TextStyle(color: DesignSystem.muted, fontSize: 15),
-                        ),
-                      ],
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [brandBlack, const Color(0xFF2C3E50)],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: -40, right: -40,
+                      child: CircleAvatar(radius: 80, backgroundColor: brandOrange.withValues(alpha: 0.08)),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: DesignSystem.s32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(DesignSystem.s12),
+                            decoration: BoxDecoration(
+                              color: DesignSystem.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(DesignSystem.radiusLg),
+                            ),
+                            child: Image.asset(
+                              'assets/icons/TailorsBook_icon_square.png',
+                              height: 56, width: 56,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(height: DesignSystem.s24),
+                          Text(
+                            StaticEnglish.welcomeBack,
+                            style: const TextStyle(
+                              color: DesignSystem.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.w800,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: DesignSystem.s12),
+                          Text(
+                            StaticEnglish.loginSubtitle,
+                            style: TextStyle(color: DesignSystem.muted, fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Form Section
-            ConstrainedContent(
-              child: Padding(
-                padding: const EdgeInsets.all(DesignSystem.s28),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: DesignSystem.s20),
+              // Form Section
+              ConstrainedContent(
+                child: Padding(
+                  padding: const EdgeInsets.all(DesignSystem.s28),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: DesignSystem.s20),
                         _buildTextField(
                           controller: _emailController,
                           hint: StaticEnglish.email,
@@ -176,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                      const SizedBox(height: DesignSystem.s20),
+                        const SizedBox(height: DesignSystem.s20),
                         _buildTextField(
                           controller: _passwordController,
                           hint: StaticEnglish.password,
@@ -189,67 +186,69 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _isLoading ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
-                          child: Text(StaticEnglish.forgotPassword, style: TextStyle(color: brandOrange, fontWeight: FontWeight.w700)),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _isLoading ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                            child: Text(StaticEnglish.forgotPassword, style: TextStyle(color: brandOrange, fontWeight: FontWeight.w700)),
+                          ),
                         ),
-                    ),
-                    const SizedBox(height: DesignSystem.s28),
-                    SizedBox(
-                      width: double.infinity,
-                      height: DesignSystem.s56,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _signIn,
-                        style: DesignSystem.primaryButton(brandOrange).copyWith(
-                          shadowColor: WidgetStatePropertyAll(brandOrange.withValues(alpha: 0.3)),
-                        ),
-                          child: _isLoading
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: DesignSystem.white, strokeWidth: 2))
-                          : Text(StaticEnglish.login, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
-                      ),
-                    ),
-                    const SizedBox(height: DesignSystem.s16),
-                    TextButton(
-                      onPressed: _isLoading ? null : () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Row(
-                              children: [
-                                Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 16),
-                                SizedBox(width: 8),
-                                Text('Magic Link — Coming Soon! 🚀', style: TextStyle(fontWeight: FontWeight.w600)),
-                              ],
+                        const SizedBox(height: DesignSystem.s28),
+                        SizedBox(
+                          width: double.infinity,
+                          height: DesignSystem.s56,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _signIn,
+                            style: DesignSystem.primaryButton(brandOrange).copyWith(
+                              shadowColor: WidgetStatePropertyAll(brandOrange.withValues(alpha: 0.3)),
                             ),
-                            backgroundColor: const Color(0xFF1C1C1C),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            duration: const Duration(seconds: 2),
+                            child: _isLoading
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: DesignSystem.white, strokeWidth: 2))
+                                : Text(StaticEnglish.login, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
                           ),
-                        );
-                      },
-                      child: Text(StaticEnglish.loginMagicLink, style: TextStyle(color: brandBlack.withValues(alpha: 0.4), fontWeight: FontWeight.w600)),
-                    ),
-                    const SizedBox(height: DesignSystem.s40),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
-                        GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegistrationScreen())),
-                          child: Text(
-                            StaticEnglish.registerNow,
-                            style: TextStyle(color: brandBlack, fontWeight: FontWeight.w800, decoration: TextDecoration.underline),
-                          ),
+                        ),
+                        const SizedBox(height: DesignSystem.s16),
+                        TextButton(
+                          onPressed: _isLoading ? null : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 16),
+                                    SizedBox(width: 8),
+                                    Text('Magic Link — Coming Soon! 🚀', style: TextStyle(fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                                backgroundColor: const Color(0xFF1C1C1C),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: Text(StaticEnglish.loginMagicLink, style: TextStyle(color: brandBlack.withValues(alpha: 0.4), fontWeight: FontWeight.w600)),
+                        ),
+                        const SizedBox(height: DesignSystem.s40),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(StaticEnglish.newToApp, style: TextStyle(color: DesignSystem.muted)),
+                            GestureDetector(
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegistrationScreen())),
+                              child: Text(
+                                StaticEnglish.registerNow,
+                                style: TextStyle(color: brandBlack, fontWeight: FontWeight.w800, decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
